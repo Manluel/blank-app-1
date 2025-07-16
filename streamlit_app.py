@@ -1,7 +1,7 @@
 import streamlit as st
 import random
 
-st.set_page_config(page_title="🎮 Juegos Web", layout="centered")
+st.set_page_config(page_title="🎮 Juegos Interactivos", layout="centered", page_icon="🕹️")
 
 # Inicialización de estado global
 if "estadisticas" not in st.session_state:
@@ -15,17 +15,71 @@ if "estadisticas" not in st.session_state:
 
 # Dibujos del ahorcado
 ahorcado_dibujos = [
-    ".____.\n|    |\n|     \n|     \n|     \n|     \n|     \n|     ",
-    ".____.\n|    |\n|    o\n|     \n|     \n|     \n|     \n|     ",
-    ".____.\n|    |\n|    O\n|    |\n|    |\n|     \n|     \n|     ",
-    ".____.\n|    |\n|    O\n| ---|---\n|    |\n|     \n|     \n|     ",
-    ".____.\n|    |\n|    O\n| ---|---\n|    |\n|   | \n|   | \n|     ",
-    ".____.\n|    |\n|    O\n| ---|---\n|    |\n|   | |\n|   | |\n|     "
+    """<pre style='color:red;'>
+.____.
+|    |
+|     
+|     
+|     
+|     
+|     
+|     
+</pre>""",
+    """<pre style='color:red;'>
+.____.
+|    |
+|    o
+|     
+|     
+|     
+|     
+|     
+</pre>""",
+    """<pre style='color:orange;'>
+.____.
+|    |
+|    O
+|    |
+|    |
+|     
+|     
+|     
+</pre>""",
+    """<pre style='color:orange;'>
+.____.
+|    |
+|    O
+| ---|---
+|    |
+|     
+|     
+|     
+</pre>""",
+    """<pre style='color:green;'>
+.____.
+|    |
+|    O
+| ---|---
+|    |
+|   | 
+|   | 
+|     
+</pre>""",
+    """<pre style='color:green;'>
+.____.
+|    |
+|    O
+| ---|---
+|    |
+|   | |
+|   | |
+|     
+</pre>"""
 ]
 
 # ------------------- Juego del Ahorcado -------------------
 def jugar_ahorcado():
-    st.header("🔠 Juego del Ahorcado")
+    st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🔠 Juego del Ahorcado</h1>", unsafe_allow_html=True)
 
     if "palabra" not in st.session_state:
         st.session_state.palabra = random.choice(["zapallo", "tarta", "banana", "maiz", "pileta", "ajo"])
@@ -36,12 +90,12 @@ def jugar_ahorcado():
     palabra = st.session_state.palabra
     errores = st.session_state.errores
 
-    st.info(f"Pista: {st.session_state.pista}")
-    st.text(ahorcado_dibujos[min(errores, len(ahorcado_dibujos)-1)])
+    st.info(f"💡 Pista: {st.session_state.pista}")
+    st.markdown(ahorcado_dibujos[min(errores, len(ahorcado_dibujos)-1)], unsafe_allow_html=True)
 
     if not st.session_state.terminado:
         intento = st.text_input("Adivina la palabra:")
-        if st.button("Enviar"):
+        if st.button("✅ Enviar Respuesta"):
             st.session_state.estadisticas["intentos"] += 1
             if intento.lower() == palabra:
                 st.success(f"🎉 ¡Ganaste! La palabra era: {palabra}")
@@ -63,14 +117,14 @@ def jugar_ahorcado():
 
 # ------------------- Juego Adivina el Número -------------------
 def adivina_numero():
-    st.header("🔢 Adivina el Número")
+    st.markdown("<h1 style='text-align: center; color: #33C3F0;'>🔢 Adivina el Número</h1>", unsafe_allow_html=True)
 
     if "numero" not in st.session_state:
         st.session_state.numero = random.randint(1, 20)
         st.session_state.intentos_num = 0
 
     guess = st.number_input("Estoy pensando en un número del 1 al 20:", 1, 20, step=1)
-    if st.button("Adivinar"):
+    if st.button("🎯 Adivinar"):
         st.session_state.intentos_num += 1
         st.session_state.estadisticas["intentos"] += 1
 
@@ -92,11 +146,11 @@ def adivina_numero():
 
 # ------------------- Juego Piedra Papel o Tijera -------------------
 def piedra_papel_tijera():
-    st.header("✊ Piedra, Papel o Tijera")
+    st.markdown("<h1 style='text-align: center; color: #2ECC71;'>✊ Piedra, Papel o Tijera</h1>", unsafe_allow_html=True)
     opciones = ["piedra", "papel", "tijera"]
-    jugador = st.selectbox("Elige:", opciones)
+    jugador = st.selectbox("Elige tu jugada:", opciones)
 
-    if st.button("Jugar"):
+    if st.button("🕹️ Jugar" ):
         pc = random.choice(opciones)
         st.write(f"🤖 La computadora eligió: {pc}")
         st.session_state.estadisticas["intentos"] += 1
@@ -117,36 +171,40 @@ def piedra_papel_tijera():
 
 # ------------------- Estadísticas -------------------
 def mostrar_estadisticas():
-    st.header("📊 Estadísticas Generales")
+    st.markdown("<h1 style='text-align: center; color: #9B59B6;'>📊 Estadísticas Generales</h1>", unsafe_allow_html=True)
     stats = st.session_state.estadisticas
-    st.write(f"🏆 Ganadas: {stats['victorias']}")
-    st.write(f"💀 Perdidas: {stats['derrotas']}")
-    st.write(f"🔥 Racha: {stats['racha']}")
-    st.write(f"🎮 Intentos totales: {stats['intentos']}")
+    st.success(f"🏆 Ganadas: {stats['victorias']}")
+    st.error(f"💀 Perdidas: {stats['derrotas']}")
+    st.info(f"🔥 Racha: {stats['racha']}")
+    st.warning(f"🎮 Intentos totales: {stats['intentos']}")
 
     if st.button("🔙 Volver al menú"):
         st.session_state.pagina = "menu"
 
 # ------------------- Menú principal -------------------
 def menu_principal():
-    st.title("🎮 MENÚ DE JUEGOS WEB")
     st.markdown("""
-    **Selecciona un juego:**
-    - 🎯 Ahorcado
-    - 🔢 Adivina el Número
-    - ✊ Piedra, Papel o Tijera
-    - 📊 Ver estadísticas
-    """)
-    opcion = st.selectbox("Ir a:", ["--", "Ahorcado", "Adivina el Número", "Piedra, Papel o Tijera", "Ver Estadísticas"])
+        <h1 style='text-align: center; color: #FF8C00;'>🎮 MENÚ DE JUEGOS INTERACTIVOS</h1>
+        <div style='text-align: center;'>
+            <p>Selecciona una opción:</p>
+        </div>
+    """, unsafe_allow_html=True)
 
-    if opcion == "Ahorcado":
-        st.session_state.pagina = "ahorcado"
-    elif opcion == "Adivina el Número":
-        st.session_state.pagina = "numero"
-    elif opcion == "Piedra, Papel o Tijera":
-        st.session_state.pagina = "ppt"
-    elif opcion == "Ver Estadísticas":
-        st.session_state.pagina = "estadisticas"
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🔠 Ahorcado"):
+            st.session_state.pagina = "ahorcado"
+    with col2:
+        if st.button("🔢 Adivina el Número"):
+            st.session_state.pagina = "numero"
+
+    col3, col4 = st.columns(2)
+    with col3:
+        if st.button("✊ Piedra, Papel o Tijera"):
+            st.session_state.pagina = "ppt"
+    with col4:
+        if st.button("📊 Ver Estadísticas"):
+            st.session_state.pagina = "estadisticas"
 
 # ------------------- Enrutamiento -------------------
 pagina = st.session_state.pagina
