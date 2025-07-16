@@ -1,75 +1,172 @@
 import streamlit as st
 import random
 
-# Configuración inicial
-st.set_page_config(page_title="🎮 Ahorcado Web", layout="centered")
-st.title("🎮 JUEGO DEL AHORCADO")
-st.markdown("---")
+st.set_page_config(page_title="🎮 Juegos Web", layout="centered")
 
-# Palabras y pistas
-palabras = {
-    "banana": "Es una fruta",
-    "maiz": "Es un grano",
-    "ajo": "Es un vegetal",
-    "tarta": "Es un postre",
-    "zapallo": "Es una verdura",
-    "pileta": "Es un objeto"
-}
+# Estadísticas globales
+def init_session():
+    if "estadisticas" not in st.session_state:
+        st.session_state.estadisticas = {
+            "victorias": 0,
+            "derrotas": 0,
+            "racha": 0,
+            "intentos": 0
+        }
+        st.session_state.pagina = "menu"
+init_session()
 
-# Inicialización de variables de sesión
-if "palabra" not in st.session_state:
-    st.session_state.palabra = random.choice(list(palabras.keys()))
-    st.session_state.pistas = [
-        f"La palabra tiene {len(st.session_state.palabra)} letras.",
-        f"Pista de categoría: {palabras[st.session_state.palabra]}"
-    ]
-    st.session_state.letras = []
-    st.session_state.errores = 0
-    st.session_state.max_errores = 6
-    st.session_state.ganaste = False
-    st.session_state.perdiste = False
+# Dibujos del ahorcado
+dibujos = [
+    ".____.\n|    |\n|    \n|    \n|    \n|    \n|    \n|    ",
+    ".____.\n|    |\n|    o\n|    \n|    \n|    \n|    \n|    ",
+    ".____.\n|    |\n|    O\n|    |\n|    |\n|    \n|    \n|    ",
+    ".____.\n|    |\n|    O\n| ---|---\n|    |\n|    \n|    \n|    ",
+    ".____.\n|    |\n|    O\n| ---|---\n|    |\n|   | \n|   | \n|    ",
+    ".____.\n|    |\n|    O\n| ---|---\n|    |\n|   | |\n|   | |\n|    "
+]
 
-# Variables locales
-palabra = st.session_state.palabra
-letras = st.session_state.letras
-errores = st.session_state.errores
-ganaste = st.session_state.ganaste
-perdiste = st.session_state.perdiste
+# -------------------
+# Juego 1: Ahorcado
+# -------------------
+def jugar_ahorcado():
+    st.subheader("🔠 Juego del Ahorcado")
+    if "palabra" not in st.session_state:
+        st.session_state.palabra = random.choice(["zapallo", "tarta", "banana", "maiz", "pileta", "ajo"])
+        st.session_state.errores = 0
+        st.session_state.max_errores = len(dibujos) - 1
+        st.session_state.pista = f"Tiene {len(st.session_state.palabra)} letras y {sum(1 for c in st.session_state.palabra if c in 'aeiou')} vocales."
+        st.session_state.gano = False
 
-# Mostrar pistas
-st.subheader("💡 Pistas:")
-for pista in st.session_state.pistas:
-    st.write("➡️", pista)
+    palabra = st.session_state.palabra
+    errores = st.session_state.errores
 
-# Mostrar palabra oculta
-palabra_oculta = [l if l in letras else "_" for l in palabra]
-st.subheader("🔤 Palabra:")
-st.write(" ".join(palabra_oculta))
+    st.info(f"Pista: {st.session_state.pista}")
+    st.text(dibujos[errores])
+    intento = st.text_input("Adivina la palabra:").lower()
+    if st.button("Enviar"):
+        st.session_state.estadisticas["intentos"] += 1
+        if intento == palabra:
+            st.success(f"🎉 ¡Ganaste! La palabra era: {palabra}")
+            st.session_state.estadisticas["victorias"] += 1
+            st.session_state.estadisticas["racha"] += 1
+            st.session_state.gano = True
+        else:
+            st.session_state.errores += 1
+            st.warning("❌ Incorrecto.")
+            if st.session_state.errores == st.session_state.max_errores:
+                st.error(f"💀 Perdiste. La palabra era: {palabra}")
+                st.session_state.estadisticas["derrotas"] += 1
+                st.session_state.estadisticas["racha"] = 0
 
-# Letras adivinadas
-st.write("🔁 Letras usadas:", ", ".join(letras))
-st.write(f"❌ Errores: {errores} / {st.session_state.max_errores}")
+    if st.button("🔙 Volver al menú"):
+        st.session_state.pagina = "menu"
+        for key in ["palabra", "errores", "max_errores", "pista", "gano"]:
+            if key in st.session_state:
+                del st.session_state[key]
+        st.experimental_rerun()
 
-# Entrada del jugador
-if not ganaste and not perdiste:
-    letra = st.text_input("Escribe una letra", max_chars=1).lower()
-    if st.button("✅ Adivinar letra"):
-        if letra.isalpha() and letra not in letras:
-            letras.append(letra)
-            if letra not in palabra:
-                st.session_state.errores += 1
+# -------------------
+# Juego 2: Adivina el número
+# -------------------
+def adivina_numero():
+    st.subheader("🔢 Adivina el número")
+    if "numero" not in st.session_state:
+        st.session_state.numero = random.randint(1, 20)
+        st.session_state.intentos = 0
 
-# Verificar resultado
-if "_" not in palabra_oculta and not ganaste:
-    st.success(f"🎉 ¡Ganaste! La palabra era: {palabra}")
-    st.session_state.ganaste = True
+    guess = st.number_input("Estoy pensando en un número del 1 al 20", min_value=1, max_value=20, step=1)
+    if st.button("Adivinar"):
+        st.session_state.intentos += 1
+        st.session_state.estadisticas["intentos"] += 1
+        if guess < st.session_state.numero:
+            st.warning("📉 Demasiado bajo.")
+        elif guess > st.session_state.numero:
+            st.warning("📈 Demasiado alto.")
+        else:
+            st.success(f"🎯 ¡Correcto! El número era {st.session_state.numero}. Lo lograste en {st.session_state.intentos} intentos.")
+            st.session_state.estadisticas["victorias"] += 1
+            st.session_state.estadisticas["racha"] += 1
+            del st.session_state["numero"]
+            del st.session_state["intentos"]
 
-if errores >= st.session_state.max_errores and not perdiste:
-    st.error(f"💀 Perdiste. La palabra era: {palabra}")
-    st.session_state.perdiste = True
+    if st.button("🔙 Volver al menú"):
+        st.session_state.pagina = "menu"
+        if "numero" in st.session_state:
+            del st.session_state["numero"]
+        st.experimental_rerun()
 
-# Reiniciar
-if st.button("🔄 Jugar de nuevo"):
-    st.session_state.clear()
-    st.experimental_rerun()
+# -------------------
+# Juego 3: Piedra, Papel o Tijera
+# -------------------
+def piedra_papel_tijera():
+    st.subheader("✊🖐✌ Piedra, Papel o Tijera")
+    opciones = ["piedra", "papel", "tijera"]
+    jugador = st.selectbox("Elige:", opciones)
+    if st.button("Jugar"):
+        pc = random.choice(opciones)
+        st.write(f"🤖 La computadora eligió: {pc}")
+        st.session_state.estadisticas["intentos"] += 1
+        if jugador == pc:
+            st.info("🟰 Empate.")
+        elif (jugador == "piedra" and pc == "tijera") or (jugador == "papel" and pc == "piedra") or (jugador == "tijera" and pc == "papel"):
+            st.success("🏆 ¡Ganaste!")
+            st.session_state.estadisticas["victorias"] += 1
+            st.session_state.estadisticas["racha"] += 1
+        else:
+            st.error("💥 Perdiste.")
+            st.session_state.estadisticas["derrotas"] += 1
+            st.session_state.estadisticas["racha"] = 0
+
+    if st.button("🔙 Volver al menú"):
+        st.session_state.pagina = "menu"
+        st.experimental_rerun()
+
+# -------------------
+# Ver estadísticas
+# -------------------
+def mostrar_estadisticas():
+    st.subheader("📊 Estadísticas Generales")
+    stats = st.session_state.estadisticas
+    st.write(f"🏆 Partidas ganadas: {stats['victorias']}")
+    st.write(f"💀 Partidas perdidas: {stats['derrotas']}")
+    st.write(f"🔥 Racha actual: {stats['racha']}")
+    st.write(f"🎮 Total de intentos: {stats['intentos']}")
+
+    if st.button("🔙 Volver al menú"):
+        st.session_state.pagina = "menu"
+        st.experimental_rerun()
+
+# -------------------
+# Menú principal
+# -------------------
+def menu_principal():
+    st.title("🕹 MENÚ PRINCIPAL DE JUEGOS")
+    st.write("1. 🎯 Juego del Ahorcado")
+    st.write("2. 🔢 Adivina el Número")
+    st.write("3. ✊ Piedra, Papel o Tijera")
+    st.write("4. 📊 Ver Estadísticas")
+    opcion = st.selectbox("Selecciona un juego:", ["--", "Ahorcado", "Adivina el Número", "Piedra, Papel o Tijera", "Ver Estadísticas"])
+
+    if opcion == "Ahorcado":
+        st.session_state.pagina = "ahorcado"
+    elif opcion == "Adivina el Número":
+        st.session_state.pagina = "numero"
+    elif opcion == "Piedra, Papel o Tijera":
+        st.session_state.pagina = "ppt"
+    elif opcion == "Ver Estadísticas":
+        st.session_state.pagina = "estadisticas"
+
+    st.write("\nHecho por Manuel ✨")
+
+# Enrutamiento de páginas
+if st.session_state.pagina == "menu":
+    menu_principal()
+elif st.session_state.pagina == "ahorcado":
+    jugar_ahorcado()
+elif st.session_state.pagina == "numero":
+    adivina_numero()
+elif st.session_state.pagina == "ppt":
+    piedra_papel_tijera()
+elif st.session_state.pagina == "estadisticas":
+    mostrar_estadisticas()
 
