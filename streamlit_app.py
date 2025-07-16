@@ -13,175 +13,108 @@ if "estadisticas" not in st.session_state:
     }
     st.session_state.pagina = "menu"
 
-# Dibujos del ahorcado
-ahorcado_dibujos = [
-    """<pre style='color:red;'>
-.____.
-|    |
-|     
-|     
-|     
-|     
-|     
-|     
-</pre>""",
-    """<pre style='color:red;'>
-.____.
-|    |
-|    o
-|     
-|     
-|     
-|     
-|     
-</pre>""",
-    """<pre style='color:orange;'>
-.____.
-|    |
-|    O
-|    |
-|    |
-|     
-|     
-|     
-</pre>""",
-    """<pre style='color:orange;'>
-.____.
-|    |
-|    O
-| ---|---
-|    |
-|     
-|     
-|     
-</pre>""",
-    """<pre style='color:green;'>
-.____.
-|    |
-|    O
-| ---|---
-|    |
-|   | 
-|   | 
-|     
-</pre>""",
-    """<pre style='color:green;'>
-.____.
-|    |
-|    O
-| ---|---
-|    |
-|   | |
-|   | |
-|     
-</pre>"""
+# ------------------- Trivia -------------------
+trivia_preguntas = [
+    {"pregunta": "¿Cuál es el océano más grande del mundo?", "opciones": ["Atlántico", "Índico", "Pacífico"], "respuesta": "Pacífico"},
+    {"pregunta": "¿Quién pintó la Mona Lisa?", "opciones": ["Picasso", "Leonardo da Vinci", "Van Gogh"], "respuesta": "Leonardo da Vinci"},
+    {"pregunta": "¿Cuántos planetas tiene el sistema solar?", "opciones": ["7", "8", "9"], "respuesta": "8"}
 ]
 
-# ------------------- Juego del Ahorcado -------------------
-def jugar_ahorcado():
-    st.markdown("<h1 style='text-align: center; color: #FF4B4B;'>🔠 Juego del Ahorcado</h1>", unsafe_allow_html=True)
+if "trivia_puntaje" not in st.session_state:
+    st.session_state.trivia_puntaje = 0
+    st.session_state.trivia_index = 0
 
-    if "palabra" not in st.session_state:
-        st.session_state.palabra = random.choice(["zapallo", "tarta", "banana", "maiz", "pileta", "ajo"])
-        st.session_state.errores = 0
-        st.session_state.terminado = False
-        st.session_state.pista = f"Tiene {len(st.session_state.palabra)} letras y {sum(1 for c in st.session_state.palabra if c in 'aeiou')} vocales."
 
-    palabra = st.session_state.palabra
-    errores = st.session_state.errores
+def jugar_trivia():
+    st.markdown("<h1 style='text-align: center; color: #00BFFF;'>🧠 Trivia de Cultura General</h1>", unsafe_allow_html=True)
 
-    st.info(f"💡 Pista: {st.session_state.pista}")
-    st.markdown(ahorcado_dibujos[min(errores, len(ahorcado_dibujos)-1)], unsafe_allow_html=True)
+    idx = st.session_state.trivia_index
 
-    if not st.session_state.terminado:
-        intento = st.text_input("Adivina la palabra:")
-        if st.button("✅ Enviar Respuesta"):
-            st.session_state.estadisticas["intentos"] += 1
-            if intento.lower() == palabra:
-                st.success(f"🎉 ¡Ganaste! La palabra era: {palabra}")
-                st.session_state.estadisticas["victorias"] += 1
-                st.session_state.estadisticas["racha"] += 1
-                st.session_state.terminado = True
-            else:
-                st.session_state.errores += 1
-                if st.session_state.errores >= len(ahorcado_dibujos) - 1:
-                    st.error(f"💀 Perdiste. La palabra era: {palabra}")
-                    st.session_state.estadisticas["derrotas"] += 1
-                    st.session_state.estadisticas["racha"] = 0
-                    st.session_state.terminado = True
+    if idx >= len(trivia_preguntas):
+        st.success(f"Has terminado la trivia. Puntaje: {st.session_state.trivia_puntaje} / {len(trivia_preguntas)}")
+        st.session_state.estadisticas["intentos"] += len(trivia_preguntas)
+        st.session_state.trivia_index = 0
+        st.session_state.trivia_puntaje = 0
+        if st.button("🔙 Volver al menú"):
+            st.session_state.pagina = "menu"
+        return
 
-    if st.button("🔙 Volver al menú"):
-        for key in ["palabra", "errores", "terminado", "pista"]:
-            st.session_state.pop(key, None)
-        st.session_state.pagina = "menu"
+    pregunta = trivia_preguntas[idx]
+    st.subheader(pregunta["pregunta"])
+    opcion = st.radio("Elige una opción:", pregunta["opciones"])
 
-# ------------------- Juego Adivina el Número -------------------
-def adivina_numero():
-    st.markdown("<h1 style='text-align: center; color: #33C3F0;'>🔢 Adivina el Número</h1>", unsafe_allow_html=True)
-
-    if "numero" not in st.session_state:
-        st.session_state.numero = random.randint(1, 20)
-        st.session_state.intentos_num = 0
-
-    guess = st.number_input("Estoy pensando en un número del 1 al 20:", 1, 20, step=1)
-    if st.button("🎯 Adivinar"):
-        st.session_state.intentos_num += 1
+    if st.button("✅ Confirmar"):
         st.session_state.estadisticas["intentos"] += 1
-
-        if guess < st.session_state.numero:
-            st.warning("📉 Muy bajo.")
-        elif guess > st.session_state.numero:
-            st.warning("📈 Muy alto.")
-        else:
-            st.success(f"🎯 ¡Correcto! Era el {st.session_state.numero} en {st.session_state.intentos_num} intentos.")
-            st.session_state.estadisticas["victorias"] += 1
-            st.session_state.estadisticas["racha"] += 1
-            del st.session_state["numero"]
-            del st.session_state["intentos_num"]
-
-    if st.button("🔙 Volver al menú"):
-        st.session_state.pagina = "menu"
-        st.session_state.pop("numero", None)
-        st.session_state.pop("intentos_num", None)
-
-# ------------------- Juego Piedra Papel o Tijera -------------------
-def piedra_papel_tijera():
-    st.markdown("<h1 style='text-align: center; color: #2ECC71;'>✊ Piedra, Papel o Tijera</h1>", unsafe_allow_html=True)
-    opciones = ["piedra", "papel", "tijera"]
-    jugador = st.selectbox("Elige tu jugada:", opciones)
-
-    if st.button("🕹️ Jugar" ):
-        pc = random.choice(opciones)
-        st.write(f"🤖 La computadora eligió: {pc}")
-        st.session_state.estadisticas["intentos"] += 1
-
-        if jugador == pc:
-            st.info("🟰 Empate.")
-        elif (jugador == "piedra" and pc == "tijera") or (jugador == "papel" and pc == "piedra") or (jugador == "tijera" and pc == "papel"):
-            st.success("🏆 ¡Ganaste!")
+        if opcion == pregunta["respuesta"]:
+            st.success("✔️ Correcto!")
+            st.session_state.trivia_puntaje += 1
             st.session_state.estadisticas["victorias"] += 1
             st.session_state.estadisticas["racha"] += 1
         else:
-            st.error("💥 Perdiste.")
+            st.error(f"❌ Incorrecto. La respuesta era: {pregunta['respuesta']}")
             st.session_state.estadisticas["derrotas"] += 1
             st.session_state.estadisticas["racha"] = 0
+        st.session_state.trivia_index += 1
+        st.experimental_rerun()
+
+# ------------------- Juego de Memoria Visual -------------------
+if "secuencia" not in st.session_state:
+    st.session_state.secuencia = []
+    st.session_state.usuario = []
+    st.session_state.memoria_fase = "mostrar"
+    st.session_state.nivel = 1
+
+colores = ["🟥", "🟩", "🟦", "🟨"]
+
+def juego_memoria():
+    st.markdown("<h1 style='text-align: center; color: #FFD700;'>🧠 Memoria Visual</h1>", unsafe_allow_html=True)
+
+    if st.session_state.memoria_fase == "mostrar":
+        if len(st.session_state.secuencia) < st.session_state.nivel:
+            st.session_state.secuencia.append(random.choice(colores))
+
+        st.info(f"Recuerda esta secuencia de colores nivel {st.session_state.nivel}:")
+        st.write(" ".join(st.session_state.secuencia))
+
+        if st.button("👉 Estoy listo!"):
+            st.session_state.memoria_fase = "ingresar"
+            st.experimental_rerun()
+
+    elif st.session_state.memoria_fase == "ingresar":
+        st.write("Ingresa la secuencia (uno por uno):")
+        for i in range(len(st.session_state.secuencia)):
+            col = st.selectbox(f"Color {i+1}", colores, key=f"col{i}")
+            if len(st.session_state.usuario) < len(st.session_state.secuencia):
+                st.session_state.usuario.append(col)
+
+        if len(st.session_state.usuario) == len(st.session_state.secuencia):
+            if st.button("✅ Verificar"):
+                st.session_state.estadisticas["intentos"] += 1
+                if st.session_state.usuario == st.session_state.secuencia:
+                    st.success("¡Correcto! Pasas al siguiente nivel 🎉")
+                    st.session_state.estadisticas["victorias"] += 1
+                    st.session_state.estadisticas["racha"] += 1
+                    st.session_state.usuario = []
+                    st.session_state.memoria_fase = "mostrar"
+                    st.session_state.nivel += 1
+                else:
+                    st.error("Fallaste 😢. Se reinicia el juego.")
+                    st.session_state.estadisticas["racha"] = 0
+                    st.session_state.estadisticas["derrotas"] += 1
+                    st.session_state.secuencia = []
+                    st.session_state.usuario = []
+                    st.session_state.memoria_fase = "mostrar"
+                    st.session_state.nivel = 1
+                st.experimental_rerun()
 
     if st.button("🔙 Volver al menú"):
         st.session_state.pagina = "menu"
+        st.session_state.secuencia = []
+        st.session_state.usuario = []
+        st.session_state.memoria_fase = "mostrar"
+        st.session_state.nivel = 1
 
-# ------------------- Estadísticas -------------------
-def mostrar_estadisticas():
-    st.markdown("<h1 style='text-align: center; color: #9B59B6;'>📊 Estadísticas Generales</h1>", unsafe_allow_html=True)
-    stats = st.session_state.estadisticas
-    st.success(f"🏆 Ganadas: {stats['victorias']}")
-    st.error(f"💀 Perdidas: {stats['derrotas']}")
-    st.info(f"🔥 Racha: {stats['racha']}")
-    st.warning(f"🎮 Intentos totales: {stats['intentos']}")
-
-    if st.button("🔙 Volver al menú"):
-        st.session_state.pagina = "menu"
-
-# ------------------- Menú principal -------------------
+# ------------------- Agregar al menú -------------------
 def menu_principal():
     st.markdown("""
         <h1 style='text-align: center; color: #FF8C00;'>🎮 MENÚ DE JUEGOS INTERACTIVOS</h1>
@@ -203,6 +136,14 @@ def menu_principal():
         if st.button("✊ Piedra, Papel o Tijera"):
             st.session_state.pagina = "ppt"
     with col4:
+        if st.button("🧠 Trivia"):
+            st.session_state.pagina = "trivia"
+
+    col5, col6 = st.columns(2)
+    with col5:
+        if st.button("🧠 Memoria Visual"):
+            st.session_state.pagina = "memoria"
+    with col6:
         if st.button("📊 Ver Estadísticas"):
             st.session_state.pagina = "estadisticas"
 
@@ -218,3 +159,7 @@ elif pagina == "ppt":
     piedra_papel_tijera()
 elif pagina == "estadisticas":
     mostrar_estadisticas()
+elif pagina == "trivia":
+    jugar_trivia()
+elif pagina == "memoria":
+    juego_memoria()
