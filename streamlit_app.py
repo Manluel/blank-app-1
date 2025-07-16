@@ -1,6 +1,75 @@
 import streamlit as st
+import random
 
-st.title("🎈 My new app")
-st.write(
-    "Let's start building! For help and inspiration, head over to [docs.streamlit.io](https://docs.streamlit.io/)."
-)
+# Configuración inicial
+st.set_page_config(page_title="🎮 Ahorcado Web", layout="centered")
+st.title("🎮 JUEGO DEL AHORCADO")
+st.markdown("---")
+
+# Palabras y pistas
+palabras = {
+    "banana": "Es una fruta",
+    "maiz": "Es un grano",
+    "ajo": "Es un vegetal",
+    "tarta": "Es un postre",
+    "zapallo": "Es una verdura",
+    "pileta": "Es un objeto"
+}
+
+# Inicialización de variables de sesión
+if "palabra" not in st.session_state:
+    st.session_state.palabra = random.choice(list(palabras.keys()))
+    st.session_state.pistas = [
+        f"La palabra tiene {len(st.session_state.palabra)} letras.",
+        f"Pista de categoría: {palabras[st.session_state.palabra]}"
+    ]
+    st.session_state.letras = []
+    st.session_state.errores = 0
+    st.session_state.max_errores = 6
+    st.session_state.ganaste = False
+    st.session_state.perdiste = False
+
+# Variables locales
+palabra = st.session_state.palabra
+letras = st.session_state.letras
+errores = st.session_state.errores
+ganaste = st.session_state.ganaste
+perdiste = st.session_state.perdiste
+
+# Mostrar pistas
+st.subheader("💡 Pistas:")
+for pista in st.session_state.pistas:
+    st.write("➡️", pista)
+
+# Mostrar palabra oculta
+palabra_oculta = [l if l in letras else "_" for l in palabra]
+st.subheader("🔤 Palabra:")
+st.write(" ".join(palabra_oculta))
+
+# Letras adivinadas
+st.write("🔁 Letras usadas:", ", ".join(letras))
+st.write(f"❌ Errores: {errores} / {st.session_state.max_errores}")
+
+# Entrada del jugador
+if not ganaste and not perdiste:
+    letra = st.text_input("Escribe una letra", max_chars=1).lower()
+    if st.button("✅ Adivinar letra"):
+        if letra.isalpha() and letra not in letras:
+            letras.append(letra)
+            if letra not in palabra:
+                st.session_state.errores += 1
+
+# Verificar resultado
+if "_" not in palabra_oculta and not ganaste:
+    st.success(f"🎉 ¡Ganaste! La palabra era: {palabra}")
+    st.session_state.ganaste = True
+
+if errores >= st.session_state.max_errores and not perdiste:
+    st.error(f"💀 Perdiste. La palabra era: {palabra}")
+    st.session_state.perdiste = True
+
+# Reiniciar
+if st.button("🔄 Jugar de nuevo"):
+    st.session_state.clear()
+    st.experimental_rerun()
+
