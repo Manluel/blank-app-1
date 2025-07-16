@@ -3,7 +3,7 @@ import random
 
 st.set_page_config(page_title="🎮 Juegos Web", layout="centered")
 
-# Estadísticas globales
+# Inicialización de estadísticas y navegación
 def init_session():
     if "estadisticas" not in st.session_state:
         st.session_state.estadisticas = {
@@ -25,9 +25,7 @@ dibujos = [
     ".____.\n|    |\n|    O\n| ---|---\n|    |\n|   | |\n|   | |\n|    "
 ]
 
-# -------------------
-# Juego 1: Ahorcado
-# -------------------
+# ------------------- JUEGO 1: AHORCADO -------------------
 def jugar_ahorcado():
     st.subheader("🔠 Juego del Ahorcado")
     if "palabra" not in st.session_state:
@@ -40,7 +38,7 @@ def jugar_ahorcado():
     palabra = st.session_state.palabra
     errores = st.session_state.errores
 
-    st.info(f"Pista: {st.session_state.pista}")
+    st.info(f"Pista: {st.session_state.get('pista', 'Sin pista disponible.')}")
     st.text(dibujos[errores])
     intento = st.text_input("Adivina la palabra:").lower()
     if st.button("Enviar"):
@@ -65,9 +63,7 @@ def jugar_ahorcado():
                 del st.session_state[key]
         st.experimental_rerun()
 
-# -------------------
-# Juego 2: Adivina el número
-# -------------------
+# ------------------- JUEGO 2: ADIVINA EL NÚMERO -------------------
 def adivina_numero():
     st.subheader("🔢 Adivina el número")
     if "numero" not in st.session_state:
@@ -93,11 +89,11 @@ def adivina_numero():
         st.session_state.pagina = "menu"
         if "numero" in st.session_state:
             del st.session_state["numero"]
+        if "intentos" in st.session_state:
+            del st.session_state["intentos"]
         st.experimental_rerun()
 
-# -------------------
-# Juego 3: Piedra, Papel o Tijera
-# -------------------
+# ------------------- JUEGO 3: PIEDRA, PAPEL O TIJERA -------------------
 def piedra_papel_tijera():
     st.subheader("✊🖐✌ Piedra, Papel o Tijera")
     opciones = ["piedra", "papel", "tijera"]
@@ -121,9 +117,7 @@ def piedra_papel_tijera():
         st.session_state.pagina = "menu"
         st.experimental_rerun()
 
-# -------------------
-# Ver estadísticas
-# -------------------
+# ------------------- VER ESTADÍSTICAS -------------------
 def mostrar_estadisticas():
     st.subheader("📊 Estadísticas Generales")
     stats = st.session_state.estadisticas
@@ -136,9 +130,7 @@ def mostrar_estadisticas():
         st.session_state.pagina = "menu"
         st.experimental_rerun()
 
-# -------------------
-# Menú principal
-# -------------------
+# ------------------- MENÚ PRINCIPAL -------------------
 def menu_principal():
     st.title("🕹 MENÚ PRINCIPAL DE JUEGOS")
     st.write("1. 🎯 Juego del Ahorcado")
@@ -158,7 +150,7 @@ def menu_principal():
 
     st.write("\nHecho por Manuel ✨")
 
-# Enrutamiento de páginas
+# ------------------- ENRUTAMIENTO -------------------
 if st.session_state.pagina == "menu":
     menu_principal()
 elif st.session_state.pagina == "ahorcado":
