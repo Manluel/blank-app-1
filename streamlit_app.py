@@ -34,31 +34,38 @@ def jugar_ahorcado():
         st.session_state.max_errores = len(dibujos) - 1
         st.session_state.pista = f"Tiene {len(st.session_state.palabra)} letras y {sum(1 for c in st.session_state.palabra if c in 'aeiou')} vocales."
         st.session_state.gano = False
+        st.session_state.terminado = False
 
     palabra = st.session_state.palabra
     errores = st.session_state.errores
+    terminado = st.session_state.get("terminado", False)
 
     st.info(f"Pista: {st.session_state.get('pista', 'Sin pista disponible.')}")
-    st.text(dibujos[errores])
-    intento = st.text_input("Adivina la palabra:").lower()
-    if st.button("Enviar"):
-        st.session_state.estadisticas["intentos"] += 1
-        if intento == palabra:
-            st.success(f"🎉 ¡Ganaste! La palabra era: {palabra}")
-            st.session_state.estadisticas["victorias"] += 1
-            st.session_state.estadisticas["racha"] += 1
-            st.session_state.gano = True
-        else:
-            st.session_state.errores += 1
-            st.warning("❌ Incorrecto.")
-            if st.session_state.errores == st.session_state.max_errores:
-                st.error(f"💀 Perdiste. La palabra era: {palabra}")
-                st.session_state.estadisticas["derrotas"] += 1
-                st.session_state.estadisticas["racha"] = 0
+
+    if errores < len(dibujos):
+        st.text(dibujos[errores])
+
+    if not terminado:
+        intento = st.text_input("Adivina la palabra:").lower()
+        if st.button("Enviar"):
+            st.session_state.estadisticas["intentos"] += 1
+            if intento == palabra:
+                st.success(f"🎉 ¡Ganaste! La palabra era: {palabra}")
+                st.session_state.estadisticas["victorias"] += 1
+                st.session_state.estadisticas["racha"] += 1
+                st.session_state.terminado = True
+            else:
+                st.session_state.errores += 1
+                st.warning("❌ Incorrecto.")
+                if st.session_state.errores == st.session_state.max_errores:
+                    st.error(f"💀 Perdiste. La palabra era: {palabra}")
+                    st.session_state.estadisticas["derrotas"] += 1
+                    st.session_state.estadisticas["racha"] = 0
+                    st.session_state.terminado = True
 
     if st.button("🔙 Volver al menú"):
         st.session_state.pagina = "menu"
-        for key in ["palabra", "errores", "max_errores", "pista", "gano"]:
+        for key in ["palabra", "errores", "max_errores", "pista", "gano", "terminado"]:
             if key in st.session_state:
                 del st.session_state[key]
         st.experimental_rerun()
@@ -87,10 +94,8 @@ def adivina_numero():
 
     if st.button("🔙 Volver al menú"):
         st.session_state.pagina = "menu"
-        if "numero" in st.session_state:
-            del st.session_state["numero"]
-        if "intentos" in st.session_state:
-            del st.session_state["intentos"]
+        st.session_state.pop("numero", None)
+        st.session_state.pop("intentos", None)
         st.experimental_rerun()
 
 # ------------------- JUEGO 3: PIEDRA, PAPEL O TIJERA -------------------
@@ -148,7 +153,7 @@ def menu_principal():
     elif opcion == "Ver Estadísticas":
         st.session_state.pagina = "estadisticas"
 
-    st.write("\nHecho por Manuel ✨")
+    st.markdown("Hecho con 💻 por Manuel 🎮")
 
 # ------------------- ENRUTAMIENTO -------------------
 if st.session_state.pagina == "menu":
